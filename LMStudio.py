@@ -18,6 +18,7 @@ class YANCLMSTUDIO:
                     "multiline": True,
                     "default": "You are an AI assistant specialized in generating detailed and creative image prompts for AI image generation. Your task is to expand a given user prompt into a well-structured, vivid, and highly descriptive prompt while ensuring that all terms from the original prompt are included. Enhance the visual quality and artistic impact by adding relevant details, but do not omit or alter any key elements provided by the user. Follow the given instructions or guidelines and respond only with the refined prompt."
                 }),
+                "reasoning_tag": ("STRING", {"default": "think"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "ip": ("STRING", {"default": "localhost"}),
                 "port": ("INT", {"default": 1234}),
@@ -29,8 +30,8 @@ class YANCLMSTUDIO:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("Extended Prompt",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("Extended Prompt", "Reasoning")
 
     OUTPUT_NODE = False
 
@@ -63,7 +64,7 @@ class YANCLMSTUDIO:
 
         return response
 
-    def do_it(self, prompt, model_identifier, system_message, seed, ip, port, temperature, max_tokens, unload_llm, unload_comfy_models):
+    def do_it(self, prompt, model_identifier, system_message, reasoning_tag, seed, ip, port, temperature, max_tokens, unload_llm, unload_comfy_models):
 
         url = self.format_url(ip, port)
 
@@ -80,11 +81,13 @@ class YANCLMSTUDIO:
             url, model_identifier, messages, temperature, max_tokens)
 
         if response.status_code == 200:
-            result = response.json()["choices"][0]["message"]["content"]
+            content = response.json()["choices"][0]["message"]["content"]
 
             # Removing the Deepseek <think> block.
-            result = re.sub(r"<think>.*?</think>", "",
-                            result, flags=re.DOTALL).strip()
+            result = re.sub(rf"<{reasoning_tag}>.*?</{reasoning_tag}>", "",
+                            content, flags=re.DOTALL).strip()
+            reasoning = re.sub(rf".*<{reasoning_tag}>(.*?)</{reasoning_tag}>.*", r"\1", content, flags=re.DOTALL).strip()
+
         else:
             raise Exception(f"Failed to get response: {response.status_code}")
 
@@ -94,7 +97,7 @@ class YANCLMSTUDIO:
                            text=True,
                            check=True)
 
-        return (result,)
+        return (result, reasoning,)
 
 
 NODE_CLASS_MAPPINGS = {
