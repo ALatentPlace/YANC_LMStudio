@@ -1,0 +1,14 @@
+[project]
+name = "YANC_LMStudio"
+description = ""
+version = "1.0.0"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/ALatentPlace/YANC_LMStudio"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = "alatentplace"
+DisplayName = "YANC_LMStudio"
+Icon = ""
