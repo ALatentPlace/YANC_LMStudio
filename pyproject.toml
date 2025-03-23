@@ -1,6 +1,6 @@
 [project]
 name = "YANC_LMStudio"
-description = ""
+description = "A custom node for a LMStudio integration into ComfyUI."
 version = "1.0.0"
 license = {file = "LICENSE"}
 
