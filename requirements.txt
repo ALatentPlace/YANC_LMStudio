@@ -1,1 +1,2 @@
 lmstudio
+msgspec
