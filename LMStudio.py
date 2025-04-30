@@ -6,6 +6,12 @@ from torchvision.transforms.functional import to_pil_image
 from io import BytesIO
 from tempfile import NamedTemporaryFile
 import torchvision.transforms as T
+import folder_paths
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).parent
+folder_paths.add_model_folder_path(
+    "lms_config", (SCRIPT_DIR / "lms_config").as_posix())
 
 
 class YANCLMSTUDIO:
@@ -27,7 +33,7 @@ class YANCLMSTUDIO:
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "ip": ("STRING", {"default": "localhost"}),
                 "port": ("INT", {"default": 1234}),
-                "temperature": ("FLOAT", {"default": 0.7, "min": 0.1, "max": 1.0}),
+                "temperature": ("FLOAT", {"default": 0.7, "min": 0.01, "max": 1.0, "step": 0.01}),
                 "max_tokens": ("INT", {"default": 600, "min": -1, "max": 0xffffffffffffffff}),
                 "unload_llm": ("BOOLEAN", {"default": False}),
                 "unload_comfy_models": ("BOOLEAN", {"default": False})
@@ -119,10 +125,46 @@ class YANCLMSTUDIO:
         return (result, reasoning,)
 
 
+class YANCSELECTLMSMODEL:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def get_models(cls, id="models.txt"):
+        file_path = folder_paths.get_full_path("lms_config", id)
+        with open(file_path, "r", encoding="utf-8") as f:
+            return [line.strip() for line in f if line.strip()]
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model_id": (
+                    s.get_models(),
+                    {"tooltip": "Add your favorite model names to the models.txt file in custom_nodes\\YANC_LMStudio\\lms_config\\"}
+                )
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("model_id",)
+
+    OUTPUT_NODE = False
+
+    FUNCTION = "do_it"
+
+    CATEGORY = "YANC/😼 LMStudio"
+
+    def do_it(self, model_id):
+        return (model_id,)
+
+
 NODE_CLASS_MAPPINGS = {
     "> LMStudio": YANCLMSTUDIO,
+    "> Select LMS Model": YANCSELECTLMSMODEL
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "> LMStudio": "😼> LMStudio",
+    "> Select LMS Model": "😼> Select LMS Model"
 }
